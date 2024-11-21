@@ -9,14 +9,16 @@ async function fetchGasolineras() {
             g => g.Provincia === "ALICANTE"
         );
 
-        const gasolineraBarata = gasolineras.reduce((barata, actual) => {
-            return parseFloat(actual['Precio Gasolina 95 E5'].replace(',', '.')) <
-                   parseFloat(barata['Precio Gasolina 95 E5'].replace(',', '.'))
-                ? actual
-                : barata;
+        // Ordenar por el precio de la Gasolina 95 (convertir "," a ".")
+        const gasolinerasOrdenadas = gasolineras.sort((a, b) => {
+            return parseFloat(a['Precio Gasolina 95 E5'].replace(',', '.')) - 
+                   parseFloat(b['Precio Gasolina 95 E5'].replace(',', '.'));
         });
 
-        mostrarGasolinera(gasolineraBarata);
+        // Seleccionar las 6 primeras
+        const topGasolineras = gasolinerasOrdenadas.slice(0, 6);
+
+        mostrarGasolineras(topGasolineras);
     } catch (error) {
         console.error("Error al obtener las gasolineras:", error);
         document.getElementById("gasolinera-container").innerHTML =
@@ -24,16 +26,25 @@ async function fetchGasolineras() {
     }
 }
 
-function mostrarGasolinera(gasolinera) {
+function mostrarGasolineras(gasolineras) {
     const contenedor = document.getElementById("gasolinera-container");
+    contenedor.innerHTML = "";
 
-    contenedor.innerHTML = `
-        <h2>Gasolinera más barata</h2>
-        <p><strong>Dirección:</strong> ${gasolinera.Dirección}</p>
-        <p><strong>Municipio:</strong> ${gasolinera.Municipio}</p>
-        <p><strong>Precio Gasolina 95:</strong> ${gasolinera['Precio Gasolina 95 E5']} €</p>
-        <p><strong>Horario:</strong> ${gasolinera.Horario}</p>
-    `;
+    gasolineras.forEach(gasolinera => {
+        const elemento = document.createElement("div");
+        elemento.classList.add("gasolinera");
+
+        elemento.innerHTML = `
+            <h2>${gasolinera.Dirección}</h2>
+            <p><strong>Municipio:</strong> ${gasolinera.Municipio}</p>
+            <p><strong>Precio Gasolina 95:</strong> ${gasolinera['Precio Gasolina 95 E5']} €</p>
+            <p><strong>Precio Gasóleo A:</strong> ${gasolinera['Precio Gasoleo A']} €</p>
+            <p><strong>Precio Gasolina 98:</strong> ${gasolinera['Precio Gasolina 98 E5']} €</p>
+            <p><strong>Horario:</strong> ${gasolinera.Horario}</p>
+        `;
+
+        contenedor.appendChild(elemento);
+    });
 }
 
 // Llamada inicial a la función
