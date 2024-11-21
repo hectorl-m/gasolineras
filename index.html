@@ -3,16 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gasolineras más baratas en Alicante</title>
+    <title>Gasolineras más cercanas</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <header>
-        <h1>Gasolineras más baratas en Alicante</h1>
+        <h1>Gasolineras más cercanas</h1>
     </header>
     <main>
-        <div id="gasolinera-container">
-            <p>Cargando información...</p>
+        <div id="map"></div>
+        <div id="info">
+            <h2>Gasolineras Cercanas</h2>
+            <ul id="gasolineras-list">
+                <li>Cargando información...</li>
+            </ul>
         </div>
     </main>
     <footer>

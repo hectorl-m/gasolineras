@@ -20,36 +20,40 @@ header h1 {
 
 main {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    min-height: 80vh;
     padding: 1rem;
 }
 
-#gasolinera-container {
+#map {
+    width: 90%;
+    height: 400px;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+#info {
+    width: 90%;
+    max-width: 800px;
     background: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
     border-radius: 8px;
-    max-width: 800px;
-    width: 100%;
-}
-
-.gasolinera {
-    margin-bottom: 1.5rem;
     padding: 1rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: #fff;
 }
 
-.gasolinera h2 {
-    font-size: 1.2rem;
-    margin: 0 0 0.5rem 0;
+#info h2 {
+    margin-top: 0;
 }
 
-.gasolinera p {
-    margin: 0.3rem 0;
+#gasolineras-list {
+    list-style: none;
+    padding: 0;
+}
+
+#gasolineras-list li {
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
 }
 
 footer {

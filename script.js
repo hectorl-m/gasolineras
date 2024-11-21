@@ -1,51 +1,102 @@
-const url = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
+const apiUrl = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
+let map;
 
-async function fetchGasolineras() {
+// Inicializa el mapa
+function initMap(lat, lon) {
+    map = L.map('map').setView([lat, lon], 13);
+
+    // Capa de mapa base
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+}
+
+// Añade un marcador al mapa
+function addMarker(gasolinera, lat, lon) {
+    const marker = L.marker([lat, lon]).addTo(map);
+    marker.bindPopup(`
+        <strong>${gasolinera.Dirección}</strong><br>
+        Municipio: ${gasolinera.Municipio}<br>
+        Gasolina 95: ${gasolinera['Precio Gasolina 95 E5']} €<br>
+        Diésel: ${gasolinera['Precio Gasoleo A']} €<br>
+        <small>Horario: ${gasolinera.Horario}</small>
+    `);
+}
+
+// Obtiene gasolineras cercanas
+async function fetchGasolineras(lat, lon) {
     try {
-        const response = await fetch(url);
+        const response = await fetch(apiUrl);
         const data = await response.json();
 
-        const gasolineras = data.ListaEESSPrecio.filter(
-            g => g.Provincia === "ALICANTE"
-        );
+        const gasolineras = data.ListaEESSPrecio
+            .map(gasolinera => ({
+                ...gasolinera,
+                lat: parseFloat(gasolinera.Latitud.replace(',', '.')),
+                lon: parseFloat(gasolinera['Longitud (WGS84)'].replace(',', '.'))
+            }))
+            .filter(g => g.Provincia === "ALICANTE");
 
-        // Ordenar por el precio de la Gasolina 95 (convertir "," a ".")
-        const gasolinerasOrdenadas = gasolineras.sort((a, b) => {
-            return parseFloat(a['Precio Gasolina 95 E5'].replace(',', '.')) - 
-                   parseFloat(b['Precio Gasolina 95 E5'].replace(',', '.'));
+        // Ordenar por distancia
+        gasolineras.sort((a, b) => {
+            const distA = getDistance(lat, lon, a.lat, a.lon);
+            const distB = getDistance(lat, lon, b.lat, b.lon);
+            return distA - distB;
         });
 
-        // Seleccionar las 6 primeras
-        const topGasolineras = gasolinerasOrdenadas.slice(0, 6);
+        // Tomar las 6 más cercanas
+        const topGasolineras = gasolineras.slice(0, 6);
 
-        mostrarGasolineras(topGasolineras);
+        mostrarGasolineras(topGasolineras, lat, lon);
     } catch (error) {
         console.error("Error al obtener las gasolineras:", error);
-        document.getElementById("gasolinera-container").innerHTML =
-            "<p>Error al cargar los datos. Inténtalo más tarde.</p>";
+        document.getElementById("gasolineras-list").innerHTML =
+            "<li>Error al cargar los datos. Inténtalo más tarde.</li>";
     }
 }
 
-function mostrarGasolineras(gasolineras) {
-    const contenedor = document.getElementById("gasolinera-container");
-    contenedor.innerHTML = "";
+// Calcula la distancia entre dos coordenadas (Haversine)
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+// Muestra las gasolineras en el mapa y la lista
+function mostrarGasolineras(gasolineras, lat, lon) {
+    const list = document.getElementById("gasolineras-list");
+    list.innerHTML = "";
 
     gasolineras.forEach(gasolinera => {
-        const elemento = document.createElement("div");
-        elemento.classList.add("gasolinera");
+        // Añadir marcador al mapa
+        addMarker(gasolinera, gasolinera.lat, gasolinera.lon);
 
-        elemento.innerHTML = `
-            <h2>${gasolinera.Dirección}</h2>
-            <p><strong>Municipio:</strong> ${gasolinera.Municipio}</p>
-            <p><strong>Precio Gasolina 95:</strong> ${gasolinera['Precio Gasolina 95 E5']} €</p>
-            <p><strong>Precio Gasóleo A:</strong> ${gasolinera['Precio Gasoleo A']} €</p>
-            <p><strong>Precio Gasolina 98:</strong> ${gasolinera['Precio Gasolina 98 E5']} €</p>
-            <p><strong>Horario:</strong> ${gasolinera.Horario}</p>
+        // Crear elemento en la lista
+        const item = document.createElement("li");
+        item.innerHTML = `
+            <strong>${gasolinera.Dirección}</strong><br>
+            Municipio: ${gasolinera.Municipio}<br>
+            Gasolina 95: ${gasolinera['Precio Gasolina 95 E5']} €<br>
+            Diésel: ${gasolinera['Precio Gasoleo A']} €<br>
         `;
-
-        contenedor.appendChild(elemento);
+        list.appendChild(item);
     });
 }
 
-// Llamada inicial a la función
-fetchGasolineras();
+// Obtener ubicación del usuario
+navigator.geolocation.getCurrentPosition(
+    position => {
+        const { latitude, longitude } = position.coords;
+        initMap(latitude, longitude);
+        fetchGasolineras(latitude, longitude);
+    },
+    () => {
+        alert("No se pudo obtener la ubicación.");
+    }
+);
