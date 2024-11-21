@@ -23,6 +23,7 @@ main {
     justify-content: center;
     align-items: center;
     min-height: 80vh;
+    padding: 1rem;
 }
 
 #gasolinera-container {
@@ -30,13 +31,25 @@ main {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 1.5rem;
     border-radius: 8px;
-    text-align: center;
-    max-width: 600px;
-    width: 90%;
+    max-width: 800px;
+    width: 100%;
 }
 
-#gasolinera-container p {
-    margin: 0.5rem 0;
+.gasolinera {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.gasolinera h2 {
+    font-size: 1.2rem;
+    margin: 0 0 0.5rem 0;
+}
+
+.gasolinera p {
+    margin: 0.3rem 0;
 }
 
 footer {
