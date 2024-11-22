@@ -10,6 +10,11 @@ function initMap(lat, lon) {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
+
+    // Añadir marcador para la ubicación del usuario
+    L.marker([lat, lon]).addTo(map)
+        .bindPopup("Tu ubicación")
+        .openPopup();
 }
 
 // Añade un marcador al mapa
@@ -21,7 +26,8 @@ function addMarker(gasolinera, lat, lon) {
     marker.bindPopup(`
         <strong>${gasolinera.Rótulo}</strong><br>
         Dirección: ${gasolinera.Dirección}<br>
-        Precio Gasolina 95: ${gasolinera['Precio Gasolina 95 E5']} €<br>
+        Gasolina 95: ${gasolinera['Precio Gasolina 95 E5']} €<br>
+        Diésel: ${gasolinera['Precio Gasoleo A']} €<br>
         <a href="${googleMapsLink}" target="_blank">Ir en Google Maps</a>
     `);
 }
@@ -32,12 +38,16 @@ async function fetchGasolineras(lat, lon) {
         const response = await fetch(apiUrl);
         const data = await response.json();
 
+        // Verificar la estructura de los datos
+        console.log("Datos de la API:", data);
+
         const gasolineras = data.ListaEESSPrecio
             .map(gasolinera => ({
                 ...gasolinera,
                 lat: parseFloat(gasolinera.Latitud.replace(',', '.')),
                 lon: parseFloat(gasolinera['Longitud (WGS84)'].replace(',', '.')),
                 precio95: parseFloat(gasolinera['Precio Gasolina 95 E5'].replace(',', '.')) || Infinity,
+                precioDiesel: parseFloat(gasolinera['Precio Gasoleo A'] ? gasolinera['Precio Gasoleo A'].replace(',', '.') : null),
                 distancia: getDistance(lat, lon, parseFloat(gasolinera.Latitud.replace(',', '.')), parseFloat(gasolinera['Longitud (WGS84)'].replace(',', '.')))
             }))
             .filter(g => g.Provincia === "ALICANTE" && g.distancia <= maxDistanceKm);
@@ -81,10 +91,8 @@ function mostrarGasolineras(gasolineras, lat, lon) {
     const gasolinerasTop = gasolineras.slice(0, 6);
 
     gasolinerasTop.forEach(gasolinera => {
-        // Precio del diésel: comprueba si está definido
-        const precioDiesel = gasolinera['Precio Gasóleo A'] 
-            ? `${gasolinera['Precio Gasóleo A']} €` 
-            : "No disponible";
+        // Verificar si el precio del diésel está disponible
+        const precioDiesel = gasolinera.precioDiesel ? `${gasolinera.precioDiesel} €` : "No disponible";
 
         // Añadir marcador al mapa
         addMarker(gasolinera, gasolinera.lat, gasolinera.lon);
