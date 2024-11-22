@@ -1,4 +1,5 @@
 const apiUrl = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
+const maxDistanceKm = 10; // Máxima distancia en kilómetros para filtrar las gasolineras
 let map;
 
 // Inicializa el mapa
@@ -36,9 +37,10 @@ async function fetchGasolineras(lat, lon) {
                 ...gasolinera,
                 lat: parseFloat(gasolinera.Latitud.replace(',', '.')),
                 lon: parseFloat(gasolinera['Longitud (WGS84)'].replace(',', '.')),
-                precio95: parseFloat(gasolinera['Precio Gasolina 95 E5'].replace(',', '.')) || Infinity
+                precio95: parseFloat(gasolinera['Precio Gasolina 95 E5'].replace(',', '.')) || Infinity,
+                distancia: getDistance(lat, lon, parseFloat(gasolinera.Latitud.replace(',', '.')), parseFloat(gasolinera['Longitud (WGS84)'].replace(',', '.')))
             }))
-            .filter(g => g.Provincia === "ALICANTE");
+            .filter(g => g.Provincia === "ALICANTE" && g.distancia <= maxDistanceKm);
 
         // Ordenar por el precio de la Gasolina 95
         gasolineras.sort((a, b) => a.precio95 - b.precio95);
@@ -51,12 +53,34 @@ async function fetchGasolineras(lat, lon) {
     }
 }
 
+// Calcula la distancia entre dos coordenadas (Haversine)
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radio de la Tierra en kilómetros
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
 // Muestra las gasolineras en el mapa y la lista
 function mostrarGasolineras(gasolineras, lat, lon) {
     const list = document.getElementById("gasolineras-list");
     list.innerHTML = "";
 
-    gasolineras.slice(0, 6).forEach(gasolinera => {
+    // Verifica si hay gasolineras en el rango
+    if (gasolineras.length === 0) {
+        list.innerHTML = "<li>No se encontraron gasolineras cercanas en el rango establecido.</li>";
+        return;
+    }
+
+    // Seleccionar las 6 más baratas
+    const gasolinerasTop = gasolineras.slice(0, 6);
+
+    gasolinerasTop.forEach(gasolinera => {
         // Añadir marcador al mapa
         addMarker(gasolinera, gasolinera.lat, gasolinera.lon);
 
@@ -67,6 +91,7 @@ function mostrarGasolineras(gasolineras, lat, lon) {
             <strong>${gasolinera.Rótulo}</strong><br>
             Dirección: ${gasolinera.Dirección}<br>
             Gasolina 95: ${gasolinera['Precio Gasolina 95 E5']} €<br>
+            Distancia: ${gasolinera.distancia.toFixed(2)} km<br>
             <a href="${googleMapsLink}" target="_blank">Ir en Google Maps</a>
         `;
         item.onclick = () => window.open(googleMapsLink, "_blank");
