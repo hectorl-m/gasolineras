@@ -81,6 +81,11 @@ function mostrarGasolineras(gasolineras, lat, lon) {
     const gasolinerasTop = gasolineras.slice(0, 6);
 
     gasolinerasTop.forEach(gasolinera => {
+        // Precio del diésel: comprueba si está definido
+        const precioDiesel = gasolinera['Precio Gasóleo A'] 
+            ? `${gasolinera['Precio Gasóleo A']} €` 
+            : "No disponible";
+
         // Añadir marcador al mapa
         addMarker(gasolinera, gasolinera.lat, gasolinera.lon);
 
@@ -88,10 +93,11 @@ function mostrarGasolineras(gasolineras, lat, lon) {
         const item = document.createElement("li");
         const googleMapsLink = `https://www.google.com/maps/dir/?api=1&destination=${gasolinera.lat},${gasolinera.lon}`;
         item.innerHTML = `
-            <strong>${gasolinera.Rótulo}</strong><br>
-            Dirección: ${gasolinera.Dirección}<br>
-            Gasolina 95: ${gasolinera['Precio Gasolina 95 E5']} €<br>
-            Distancia: ${gasolinera.distancia.toFixed(2)} km<br>
+            <strong>${gasolinera.Rótulo}</strong>
+            <p>Dirección: ${gasolinera.Dirección}</p>
+            <p>Gasolina 95: ${gasolinera['Precio Gasolina 95 E5']} €</p>
+            <p>Diésel: ${precioDiesel}</p>
+            <p>Distancia: ${gasolinera.distancia.toFixed(2)} km</p>
             <a href="${googleMapsLink}" target="_blank">Ir en Google Maps</a>
         `;
         item.onclick = () => window.open(googleMapsLink, "_blank");
