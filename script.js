@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }).addTo(map);
 
     const apiURL = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/";
+    const RANGO_KM = 10; // Radio de búsqueda en km
 
     // Detectar ubicación del usuario
     if (navigator.geolocation) {
@@ -14,6 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
             position => {
                 const { latitude, longitude } = position.coords;
                 map.setView([latitude, longitude], 12); // Centrar el mapa en la ubicación del usuario
+                agregarMarcadorUsuario(latitude, longitude); // Agregar marcador de usuario
                 obtenerGasolineras(latitude, longitude);
             },
             () => {
@@ -26,13 +28,25 @@ document.addEventListener("DOMContentLoaded", () => {
         obtenerGasolineras(); // Cargar sin ubicación específica
     }
 
+    function agregarMarcadorUsuario(lat, lng) {
+        const marker = L.marker([lat, lng], {
+            icon: L.icon({
+                iconUrl: "https://cdn-icons-png.flaticon.com/512/684/684908.png", // Ícono personalizado
+                iconSize: [32, 32], // Tamaño del ícono
+                iconAnchor: [16, 32], // Punto de anclaje
+            }),
+        }).addTo(map);
+
+        marker.bindPopup("Tu ubicación").openPopup();
+    }
+
     function obtenerGasolineras(userLat = 40.416775, userLng = -3.703790) {
         fetch(apiURL)
             .then(response => response.json())
             .then(data => {
                 const gasolineras = data.ListaEESSPrecio;
 
-                // Calcular la distancia a cada gasolinera y ordenar por precio de Gasolina 95
+                // Calcular la distancia a cada gasolinera y filtrar por rango
                 const gasolinerasCercanas = gasolineras
                     .map(gasolinera => {
                         const lat = parseFloat(gasolinera["Latitud"].replace(",", "."));
@@ -50,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             distancia,
                         };
                     })
-                    .filter(g => !isNaN(g.gasolina95) && !isNaN(g.diesel)) // Filtrar datos válidos
+                    .filter(g => !isNaN(g.gasolina95) && !isNaN(g.diesel) && g.distancia <= RANGO_KM) // Filtrar datos válidos y dentro del rango
                     .sort((a, b) => a.gasolina95 - b.gasolina95) // Ordenar por precio
                     .slice(0, 6); // Seleccionar las 6 más baratas
 
@@ -74,21 +88,31 @@ document.addEventListener("DOMContentLoaded", () => {
     function mostrarGasolineras(gasolineras) {
         const lista = document.getElementById("gasolineras-list");
         lista.innerHTML = ""; // Limpiar lista
-
+    
+        if (gasolineras.length === 0) {
+            lista.innerHTML = "<p>No se encontraron gasolineras dentro del rango de 10 km.</p>";
+            return;
+        }
+    
         gasolineras.forEach(gasolinera => {
             const item = document.createElement("li");
+            item.style.display = "flex";
+            item.style.alignItems = "center";
+    
             item.innerHTML = `
-                <strong>${gasolinera.nombre}</strong>
-                <p>${gasolinera.direccion}, ${gasolinera.localidad}</p>
-                <p>Gasolina 95: ${gasolinera.gasolina95.toFixed(2)} €/L</p>
-                <p>Diésel: ${gasolinera.diesel.toFixed(2)} €/L</p>
-                <a href="https://www.google.com/maps/dir/?api=1&destination=${gasolinera.lat},${gasolinera.lng}" target="_blank">
-                    Cómo llegar
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${gasolinera.lat},${gasolinera.lng}" target="_blank" style="margin-right: 10px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" alt="Ir a Google Maps" style="width: 24px; height: 24px;">
                 </a>
+                <div>
+                    <strong>${gasolinera.nombre}</strong>
+                    <p>${gasolinera.direccion}, ${gasolinera.localidad}</p>
+                    <p>Gasolina 95: ${gasolinera.gasolina95.toFixed(2)} €/L</p>
+                    <p>Diésel: ${gasolinera.diesel.toFixed(2)} €/L</p>
+                </div>
             `;
             lista.appendChild(item);
         });
-    }
+    }    
 
     function mostrarEnMapa(gasolineras) {
         gasolineras.forEach(gasolinera => {
