@@ -1,4 +1,5 @@
 # Localizador de Gasolineras Cercanas
+En este proyecto me pondría de nota un 9.
 
 ## Descripción
 Este proyecto es una aplicación web que muestra las gasolineras más cercanas al usuario, ordenadas por precio de Gasolina 95. Además, permite visualizar estas gasolineras en un mapa interactivo, proporcionando enlaces directos a Google Maps para obtener indicaciones hacia ellas.
