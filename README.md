@@ -63,6 +63,8 @@ Los datos de las gasolineras provienen de la API pública del Ministerio para la
 - **Filtros avanzados**: Permitir al usuario ajustar el rango de búsqueda o priorizar otros combustibles.
 - **Modo oscuro**: Mejorar la experiencia de uso nocturna.
 - **Internacionalización**: Implementar soporte para múltiples idiomas.
+- **Vehiculos eléctricos**: Que te indique los puntos de carga eléctricos.
+- **Tipo de vehículo**: Que te de a elegir el tipo de vehiculo, es decir, de combustión o eléctrico.
 
 ## Autor
 Desarrollado con la guía de [ChatGPT](https://openai.com/chatgpt). Si encuentras errores o tienes sugerencias, no dudes en crear un issue en el repositorio.
