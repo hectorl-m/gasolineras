@@ -67,7 +67,7 @@ Los datos de las gasolineras provienen de la API pública del Ministerio para la
 - **Tipo de vehículo**: Que te de a elegir el tipo de vehiculo, es decir, de combustión o eléctrico.
 
 ## Autor
-Desarrollado con la guía de [ChatGPT](https://openai.com/chatgpt). Si encuentras errores o tienes sugerencias, no dudes en crear un issue en el repositorio.
+Desarrollado con la guía de [Héctor](hectorlm203@gmail.com). Si encuentras errores o tienes sugerencias, no dudes en crear un issue en el repositorio.
 
 ## Licencia
 Este proyecto se distribuye bajo la licencia MIT. Puedes usarlo, modificarlo y distribuirlo libremente bajo los términos de esta licencia.
